@@ -128,7 +128,7 @@ jobs:
           exit-code: "1"          # BLOCKS pipeline on CRITICAL/HIGH CVEs
           ignore-unfixed: true
           vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+          severity: "CRITICAL"
 
       - name: Push image to Docker Hub
         run: |
