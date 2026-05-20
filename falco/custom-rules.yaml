@@ -1,0 +1,72 @@
+# Custom Falco Rules — DevSecOps Local Lab
+# These extend the default Falco ruleset to catch activity specific to this project.
+# Install: copy this to /etc/falco/rules.d/ on your Minikube node
+#
+# To load in Minikube:
+#   minikube ssh
+#   sudo mkdir -p /etc/falco/rules.d
+#   # (copy this file in)
+#   sudo falco -r /etc/falco/rules.d/custom-rules.yaml
+
+- rule: Shell Spawned in DevSecOps App Container
+  desc: Detect a shell being opened inside the devsecops-app container (simulates attacker post-exploitation)
+  condition: >
+    spawned_process and container and
+    container.image.repository contains "devsecops-app" and
+    proc.name in (sh, bash, zsh, ash, dash)
+  output: >
+    ALERT: Shell spawned in production container
+    (user=%user.name shell=%proc.name parent=%proc.pname
+    container=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [shell, container, mitre_execution]
+
+- rule: Network Recon Tool in Container
+  desc: Detect network scanning tools running inside any container
+  condition: >
+    spawned_process and container and
+    proc.name in (nmap, netcat, nc, ncat, dig, nslookup, curl, wget)
+  output: >
+    ALERT: Network tool launched inside container
+    (user=%user.name command=%proc.cmdline
+    container=%container.name image=%container.image.repository)
+  priority: WARNING
+  tags: [network, discovery, mitre_discovery]
+
+- rule: Unexpected Outbound Connection from App Container
+  desc: Detect unexpected outbound connections from the app container (possible C2 beacon)
+  condition: >
+    outbound and container and
+    container.image.repository contains "devsecops-app" and
+    not fd.sport in (5000) and
+    not fd.dport in (53, 443)
+  output: >
+    ALERT: Unexpected outbound connection from app container
+    (command=%proc.cmdline connection=%fd.name
+    container=%container.name)
+  priority: WARNING
+  tags: [network, mitre_command_and_control]
+
+- rule: Sensitive File Read in Container
+  desc: Detect attempts to read sensitive files like /etc/passwd or /etc/shadow
+  condition: >
+    open_read and container and
+    fd.name in (/etc/shadow, /etc/passwd, /etc/sudoers, /root/.ssh/id_rsa)
+  output: >
+    ALERT: Sensitive file read in container
+    (user=%user.name file=%fd.name
+    container=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [filesystem, credential_access, mitre_credential_access]
+
+- rule: Privilege Escalation Attempt
+  desc: Detect use of sudo or su inside a container
+  condition: >
+    spawned_process and container and
+    proc.name in (sudo, su, newgrp)
+  output: >
+    ALERT: Privilege escalation attempt in container
+    (user=%user.name command=%proc.cmdline
+    container=%container.name)
+  priority: CRITICAL
+  tags: [privilege_escalation, mitre_privilege_escalation]

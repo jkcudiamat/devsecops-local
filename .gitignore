@@ -1,0 +1,6 @@
+docs/attack-report-*/
+*.sarif
+bandit-report.txt
+__pycache__/
+*.pyc
+.env
