@@ -121,7 +121,7 @@ jobs:
           echo "Built: $FULL_IMAGE"
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ steps.meta.outputs.full-image }}
           format: table
