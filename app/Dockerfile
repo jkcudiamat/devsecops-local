@@ -6,8 +6,10 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuse
 WORKDIR /app
 
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --upgrade jaraco.context==6.1.0 wheel==0.46.2
 
 COPY app.py .
 RUN chown -R appuser:appuser /app
