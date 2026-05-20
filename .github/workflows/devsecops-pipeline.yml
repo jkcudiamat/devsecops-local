@@ -10,6 +10,12 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: devsecops-app
   IMAGE_TAG: ${{ github.sha }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
 
 jobs:
   # ──────────────────────────────────────────────────────
@@ -53,16 +59,9 @@ jobs:
         with:
           directory: .
           framework: dockerfile,kubernetes
-          output_format: cli,sarif
-          output_file_path: console,checkov-results.sarif
-          soft_fail: true   # Report findings without blocking — review results in Security tab
-
-      - name: Upload Checkov SARIF to GitHub Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: checkov-results.sarif
-          category: checkov
+          output_format: cli
+          output_file_path: console
+          soft_fail: true   # Report findings without blocking
 
   # ──────────────────────────────────────────────────────
   # JOB 2: Static Application Security Testing
