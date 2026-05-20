@@ -1,6 +1,11 @@
 # Hardened Dockerfile — non-root user, pinned version, no cache, healthcheck
 FROM python:3.11-slim-bookworm
 
+# Patch base OS packages before installing app dependencies
+RUN apt-get update && \
+    apt-get install --only-upgrade -y libgnutls30 && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser
 
 WORKDIR /app
